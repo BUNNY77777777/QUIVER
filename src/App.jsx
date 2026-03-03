@@ -556,28 +556,32 @@ function smartChunk(content, maxChars = 12000) {
 }
 
 async function callClaude(system, user, maxTokens = 2000) {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          { role: "user", parts: [{ text: `${system}\n\n${user}` }] }
-        ],
-        generationConfig: { maxOutputTokens: maxTokens }
-      })
-    }
-  );
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+      "HTTP-Referer": window.location.origin,
+      "X-Title": "Quiver Quiz Engine"
+    },
+    body: JSON.stringify({
+      model: "meta-llama/llama-4-maverick:free",
+      max_tokens: maxTokens,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user }
+      ]
+    })
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err?.error?.message || `API error ${res.status}`);
   }
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
-  return data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+  return data.choices?.[0]?.message?.content || '';
 }
 
 function parseJSON(raw) {
@@ -1853,4 +1857,5 @@ export default function App() {
     </>
   );
 }
+
 
