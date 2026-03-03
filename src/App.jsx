@@ -556,27 +556,28 @@ function smartChunk(content, maxChars = 12000) {
 }
 
 async function callClaude(system, user, maxTokens = 2000) {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
-  const headers = { "Content-Type": "application/json" };
-  if (apiKey) headers["x-api-key"] = apiKey;
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: maxTokens,
-      system,
-      messages: [{ role: "user", content: user }]
-    })
-  });
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          { role: "user", parts: [{ text: `${system}\n\n${user}` }] }
+        ],
+        generationConfig: { maxOutputTokens: maxTokens }
+      })
+    }
+  );
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err?.error?.message || `API error ${res.status}`);
   }
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
-  return data.content?.map(c => c.text || '').join('') || '';
+  return data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
 }
 
 function parseJSON(raw) {
@@ -1852,3 +1853,4 @@ export default function App() {
     </>
   );
 }
+
