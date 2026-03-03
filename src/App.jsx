@@ -567,7 +567,7 @@ async function callClaude(system, user, maxTokens = 2000) {
       "X-Title": "Quiver Quiz Engine"
     },
     body: JSON.stringify({
-      model: "google/gemini-2.0-flash-exp:free",
+      model: "meta-llama/llama-3.3-70b-instruct:free",
       max_tokens: maxTokens,
       messages: [
         { role: "system", content: system },
@@ -1857,6 +1857,7 @@ export default function App() {
     </>
   );
 }
+
 
 
 
